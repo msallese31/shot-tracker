@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Record Accelerometor Data</string>
+    <string name="action_settings">Settings</string>
+</resources>
