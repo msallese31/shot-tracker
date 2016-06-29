@@ -1,10 +1,17 @@
 package com.sallese.recordaccelerometordata;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -14,6 +21,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -28,6 +36,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, MessageApi.MessageListener{
@@ -48,11 +58,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     boolean recordEnabled;
     FileWriter recorder;
     EditText et_filename;
+    EditText et_reps;
+    EditText et_activity;
+    EditText et_weight;
+
     FileOutputStream outputStream;
     File sdCard = Environment.getExternalStorageDirectory();
     FileOutputStream f;
     PrintWriter pw;
     File file;
+    Notification notification;
+    String notificationActionText;
+    private PowerManager.WakeLock wl;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         messageData = (TextView) findViewById(R.id.messageData);
         buttonRecord = (Button) findViewById(R.id.buttonRecord);
         et_filename = (EditText) findViewById(R.id.ET_filename);
+        et_reps = (EditText) findViewById(R.id.ET_reps);
+        et_activity = (EditText) findViewById(R.id.ET_activity);
+        et_weight = (EditText) findViewById(R.id.ET_weight);
         recordEnabled = false;
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -79,20 +100,95 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         .setAction("Action", null).show();
             }
         });
+
+        if (recordEnabled == true){
+            notificationActionText = "Stop recording";
+        }
+        else{
+            notificationActionText = "Start recording";
+        }
+
+        Intent intent = new Intent(this, com.sallese.recordaccelerometordata.MainActivity.class);
+        intent.putExtra("methodName","clickRecord");
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Action action = new NotificationCompat.Action.Builder(
+                R.drawable.ic_cast_dark, notificationActionText, pendingIntent).build();
+
+        notification = new NotificationCompat.Builder(this)
+                .setContentText("HELLO WORLD")
+                .setContentTitle("HI World")
+                .setSmallIcon(R.drawable.ic_cast_dark)
+//                .setOngoing(true)
+                .extend(new NotificationCompat.WearableExtender().addAction(action))
+                .build();
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(001,notification);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if(intent.getStringExtra("methodName").equals("clickRecord")){
+            clickRecord();
+        }
+    }
+
+    public void clickRecord(){
+//        buttonRecord.performClick();
+        Toast.makeText(MainActivity.this, "It worked!", Toast.LENGTH_SHORT).show();
+        if (recordEnabled == true){
+            notificationActionText = "Stop recording";
+        }
+        else{
+            notificationActionText = "Start recording";
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("methodName","clickRecord");
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Action action = new NotificationCompat.Action.Builder(
+                R.drawable.ic_cast_dark, notificationActionText, pendingIntent).build();
+
+        notification = new NotificationCompat.Builder(this)
+                .setContentText("HELLO WORLD")
+                .setContentTitle("HI World")
+                .setSmallIcon(R.drawable.ic_cast_dark)
+//                .setOngoing(true)
+                .extend(new NotificationCompat.WearableExtender().addAction(action))
+                .build();
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(001, notification);
+
     }
 
 
     public void recordEvent(View v) {
         if (recordEnabled == false){
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
                 File root = android.os.Environment.getExternalStorageDirectory();
+                String dateTag = (new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime())).toString();
                 File dir = new File(root.getAbsolutePath() + "/AccelData");
-                String fileName = et_filename.getText().toString() + ".txt";
+                String fileName = et_filename.getText().toString() + dateTag + ".txt";
+                String activityText = et_activity.getText().toString();
+                String weightText = et_weight.getText().toString();
+                String repsText = et_reps.getText().toString();
                 dir.mkdirs();
+                wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNjfdhotDimScreen");
+                wl.acquire();
                 file = new File(dir, fileName);
             try {
                 f = new FileOutputStream(file);
                 pw = new PrintWriter(f);
-                pw.println("Hello file!");
+                pw.println(activityText);
+                pw.println(repsText);
+                if (!weightText.isEmpty()){
+                    pw.println(weightText);
+                }
+                pw.println("x,y,z");
                 pw.flush();
             }
             catch (IOException e){
@@ -103,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         else{
             recordEnabled = false;
+            wl.release();
             try {
                 if(f != null) {
                     f.close();
@@ -193,17 +290,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     protected void onPause() {
         super.onPause();
-        try {
-            if(f != null) {
-                pw.flush();
-                pw.close();
-                f.close();
-            }
-            recordEnabled = false;
-        }
-        catch (IOException e){
-            throw new RuntimeException(e);
-        }
+//        try {
+//            if(f != null) {
+//                pw.flush();
+//                pw.close();
+//                f.close();
+//            }
+//            recordEnabled = false;
+//        }
+//        catch (IOException e){
+//            throw new RuntimeException(e);
+//        }
     }
 
     public void setUpAccData(float[] accData) {
@@ -244,5 +341,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void onConnectionFailed(ConnectionResult connectionResult){
         Log.d(TAG, "connection failed");
+    }
+
+    private boolean isEmpty(EditText etText) {
+        if (etText.getText().toString().trim().length() > 0)
+            return false;
+
+        return true;
     }
 }

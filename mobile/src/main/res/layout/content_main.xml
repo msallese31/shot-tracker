@@ -18,28 +18,60 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
         android:id="@+id/messageData"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="110dp" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start recording"
         android:id="@+id/buttonRecord"
-        android:layout_marginTop="50dp"
         android:onClick="recordEvent"
-        android:layout_below="@+id/ET_filename"
+        android:layout_marginBottom="49dp"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/ET_filename"
-        android:layout_below="@+id/messageData"
-        android:layout_marginTop="39dp"
         android:hint="filename"
-        android:layout_alignRight="@+id/buttonRecord"
-        android:layout_alignEnd="@+id/buttonRecord"
+        android:layout_below="@+id/messageData"
         android:layout_alignLeft="@+id/buttonRecord"
-        android:layout_alignStart="@+id/buttonRecord" />
+        android:layout_alignStart="@+id/buttonRecord"
+        android:layout_marginTop="52dp"
+        android:layout_alignRight="@+id/buttonRecord"
+        android:layout_alignEnd="@+id/buttonRecord" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ET_activity"
+        android:hint="activity"
+        android:layout_below="@+id/ET_filename"
+        android:layout_alignLeft="@+id/ET_filename"
+        android:layout_alignStart="@+id/ET_filename"
+        android:layout_alignRight="@+id/ET_filename"
+        android:layout_alignEnd="@+id/ET_filename" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ET_reps"
+        android:hint="repetitions"
+        android:layout_below="@+id/ET_activity"
+        android:layout_alignRight="@+id/ET_activity"
+        android:layout_alignEnd="@+id/ET_activity"
+        android:layout_alignLeft="@+id/ET_activity"
+        android:layout_alignStart="@+id/ET_activity" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ET_weight"
+        android:hint="weight(optional)"
+        android:layout_below="@+id/ET_reps"
+        android:layout_alignLeft="@+id/ET_reps"
+        android:layout_alignStart="@+id/ET_reps" />
 </RelativeLayout>
